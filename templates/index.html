@@ -1,0 +1,171 @@
+{# 
+    Главная страница: боковая панель фильтров и список книг.
+    Форма поиска расположена слева от грида книг.
+#}
+{% extends 'base.html' %}
+{% block content %}
+<div class="content-grid">
+  <aside class="search-sidebar">
+  <h2>Фильтры поиска</h2>
+  <form method="get" class="search-form">
+    <div class="search-form-row">
+      <label>
+        <span>Название:</span>
+        <input type="text" name="title" value="{{ filters.title or '' }}" placeholder="Название">
+      </label>
+    </div>
+    <div class="search-form-row">
+      <label>
+        <span>Автор:</span>
+        <input type="text" name="author" value="{{ filters.author or '' }}" placeholder="Автор">
+      </label>
+    </div>
+    <div class="search-form-row grouped">
+      <div class="search-form-col">
+        <div class="search-form-col-label">Жанр:</div>
+        <select name="genre" multiple size="7">
+          <option value="__none__" {% if not filters.genre_ids %}selected{% endif %}>Не выбран</option>
+          {% for genre in all_genres %}
+            <option value="{{ genre.id }}" {% if genre.id in filters.genre_ids %}selected{% endif %}>{{ genre.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="search-form-col">
+        <div class="search-form-col-label">Год:</div>
+        <select name="year" multiple size="7">
+          <option value="__none__" {% if not filters.year_list %}selected{% endif %}>Не выбран</option>
+          {% for y in all_years %}
+            <option value="{{ y }}" {% if y in filters.year_list %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="search-form-row">
+      <div class="search-form-col">
+        <label>Страниц:</label>
+        <input type="text" name="pages_from" value="{{ filters.pages_from or '' }}" placeholder="от">
+        <input type="text" name="pages_to" value="{{ filters.pages_to or '' }}" placeholder="до">
+      </div>
+    </div>
+    <div class="search-form-row">
+      <button type="submit" class="btn">Найти</button>
+    </div>
+  </form>
+  <div class="search-add-row">
+    {% if current_user.is_authenticated and current_user.role.name == 'admin' %}
+      <a href="/book/add" class="btn btn-small add-book-btn">Добавить книгу</a>
+    {% endif %}
+  </div>
+</aside>
+  
+  <section class="books-section">
+    <h2>Список книг</h2>
+    <div class="books-cards-list books-cards-list-grid">
+      {% for book in books.items %}
+      <div class="book-card-list">
+          <div class="book-card-list-cover">
+              {% if book.cover %}
+                  <img src="/static/covers/{{ book.cover.filename }}" alt="Обложка" class="book-card-list-img">
+              {% else %}
+                  <div class="book-card-list-placeholder">&#128214;</div>
+              {% endif %}
+          </div>
+          <div class="book-card-list-info">
+              <div class="book-card-list-title-row">
+                  <a href="/book/{{ book.id }}" class="book-card-list-title">{{ book.title }}</a>
+                  <span class="book-card-list-year">{{ book.year }}</span>
+              </div>
+              <div class="book-card-list-author">{{ book.author }}</div>
+              <div class="book-card-list-genres">
+                  {% for genre in book.genres %}
+                      {{ genre.name }}{% if not loop.last %}, {% endif %}
+                  {% endfor %}
+              </div>
+              <div class="book-card-list-meta">
+                  <span class="book-card-list-pages">{{ book.pages }} стр.</span>
+                  {% if book.avg_rating is not none %}
+                      <span class="book-card-list-rating">&#11088; {{ '%.1f'|format(book.avg_rating) }}</span>
+                  {% endif %}
+                  <span class="book-card-list-reviews">{{ book.reviews_count }} рец.</span>
+              </div>
+              <div class="book-card-list-actions">
+                  <a href="/book/{{ book.id }}" class="action-btn view-btn" title="Просмотр">&#128065; Просмотр</a>
+                  {% if current_user.is_authenticated and current_user.role.name in ['admin', 'moderator'] %}
+                      <a href="/book/{{ book.id }}/edit" class="action-btn edit-btn" title="Редактировать">&#9998; Редактировать</a>
+                  {% endif %}
+                  {% if current_user.is_authenticated and current_user.role.name == 'admin' %}
+                      <a href="#" class="action-btn delete-btn" title="Удалить"
+                         onclick="showDeleteModal({{ book.id }}, '{{ book.title|escape }}'); return false;">&#128465; Удалить</a>
+                  {% endif %}
+              </div>
+          </div>
+      </div>
+      {% endfor %}
+    </div>
+  
+    <div class="pagination-row">
+      <form method="get">
+          {% for key, value in filters.items() %}
+              {% if value %}
+                  {% if value is iterable and value is not string %}
+                      {% for v in value %}
+                          <input type="hidden" name="{{ key }}" value="{{ v }}">
+                      {% endfor %}
+                  {% else %}
+                      <input type="hidden" name="{{ key }}" value="{{ value }}">
+                  {% endif %}
+              {% endif %}
+          {% endfor %}
+          <button type="submit" name="page" value="1" class="btn-small" {% if books.page == 1 %}disabled{% endif %}>&laquo; Первая</button>
+          <button type="submit" name="page" value="{{ books.prev_num }}" class="btn-small" {% if not books.has_prev %}disabled{% endif %}>&lt; Назад</button>
+      </form>
+      <span class="pagination-info">
+          Страница {{ books.page }} из {{ books.pages }}
+      </span>
+      <form method="get">
+          {% for key, value in filters.items() %}
+              {% if value %}
+                  {% if value is iterable and value is not string %}
+                      {% for v in value %}
+                          <input type="hidden" name="{{ key }}" value="{{ v }}">
+                      {% endfor %}
+                  {% else %}
+                      <input type="hidden" name="{{ key }}" value="{{ value }}">
+                  {% endif %}
+              {% endif %}
+          {% endfor %}
+          <button type="submit" name="page" value="{{ books.next_num }}" class="btn-small" {% if not books.has_next %}disabled{% endif %}>Вперёд &gt;</button>
+          <button type="submit" name="page" value="{{ books.pages }}" class="btn-small" {% if books.page == books.pages %}disabled{% endif %}>Последняя &raquo;</button>
+      </form>
+    </div>
+  </section>
+</div>
+
+<div id="deleteModal">
+  <div>
+    <h3>Удаление книги</h3>
+    <p id="deleteModalText"></p>
+    <div style="text-align:right;">
+      <button onclick="closeDeleteModal()">Нет</button>
+      <button id="deleteModalYesBtn">Да</button>
+    </div>
+  </div>
+</div>
+<script>
+let deleteBookId = null;
+function showDeleteModal(bookId, bookTitle) {
+    deleteBookId = bookId;
+    document.getElementById('deleteModalText').innerText = 'Вы уверены, что хотите удалить книгу "' + bookTitle + '"?';
+    document.getElementById('deleteModal').style.display = 'block';
+}
+function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+    deleteBookId = null;
+}
+document.getElementById('deleteModalYesBtn').onclick = function() {
+    if (deleteBookId) {
+        window.location.href = '/book/' + deleteBookId + '/delete';
+    }
+};
+</script>
+{% endblock %}

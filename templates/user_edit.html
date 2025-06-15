@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Редактировать пользователя</h2>
+<form method="post" class="user-edit-form">
+    {{ form.hidden_tag() }}
+    <div>{{ form.last_name.label }}<br>{{ form.last_name(size=32) }}</div>
+    <div>{{ form.first_name.label }}<br>{{ form.first_name(size=32) }}</div>
+    <div>{{ form.middle_name.label }}<br>{{ form.middle_name(size=32) }}</div>
+    <div>{{ form.role_id.label }}<br>{{ form.role_id() }}</div>
+    <div>{{ form.password.label }}<br>{{ form.password(size=32, autocomplete="new-password") }}</div>
+    <div class="form-actions">
+        <a href="{{ url_for('users') }}" class="btn btn-small form-back-btn">Назад</a>
+        {{ form.submit(class_="btn") }}
+    </div>
+</form>
+{% endblock %}

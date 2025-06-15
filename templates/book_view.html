@@ -1,0 +1,85 @@
+{# 
+    Шаблон страницы просмотра книги.
+    Показывает подробную информацию о книге и её рецензии.
+#}
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="book-title">{{ book.title }}</h2>
+<div class="book-details">
+  <p><b>Автор:</b> {{ book.author }}</p>
+  <p><b>Год:</b> {{ book.year }}</p>
+  <p><b>Издательство:</b> {{ book.publisher }}</p>
+  <p><b>Жанры:</b>
+    {% for genre in book.genres %}
+      {{ genre.name }}{% if not loop.last %}, {% endif %}
+    {% endfor %}
+  </p>
+  <p><b>Страниц:</b> {{ book.pages }}</p>
+  {% if book.cover %}
+    <img src="/static/covers/{{ book.cover.filename }}" alt="Обложка" class="book-cover-img">
+  {% endif %}
+</div>
+<h3>Описание</h3>
+<div class="book-description">
+    {{ book.description_html|safe }}
+</div>
+<h3>Рецензии</h3>
+<div class="reviews-list">
+  {% for review in reviews %}
+    <div class="review-card">
+        <div class="review-header">
+          <b>{{ review.user.last_name }} {{ review.user.first_name }}</b> — Оценка: {{ review.rating }}
+        </div>
+        <div class="review-text">
+          {{ review.text_html|safe }}
+        </div>
+        <small class="review-date">Добавлено: {{ review.created_at.strftime('%d.%m.%Y %H:%M') }}</small>
+    </div>
+  {% else %}
+      <p>Пока нет рецензий.</p>
+  {% endfor %}
+</div>
+<div class="book-view-actions">
+    <a href="/" class="btn back-btn">Назад</a>
+    {% if can_review %}
+        <a href="/book/{{ book.id }}/review" class="btn view-btn">Написать рецензию</a>
+    {% endif %}
+    {% if current_user.is_authenticated and current_user.role.name == 'user' %}
+        <button class="btn collection-btn" onclick="showAddToCollectionModal()">Добавить в подборку</button>
+    {% endif %}
+</div>
+
+{% if current_user.is_authenticated and current_user.role.name == 'user' %}
+<div id="addToCollectionModal" class="modal">
+  <div class="modal-content">
+    <h3>Добавить в подборку</h3>
+    <form method="post" action="{{ url_for('add_book_to_collection', collection_id=0) }}" id="addToCollectionForm">
+        <select name="collection_id" id="collectionSelect" required class="modal-select">
+            {% for c in current_user.collections %}
+                <option value="{{ c.id }}">{{ c.name }}</option>
+            {% endfor %}
+        </select>
+        <input type="hidden" name="book_id" value="{{ book.id }}">
+        <div class="modal-actions">
+            <button type="button" class="btn modal-cancel-btn" onclick="closeAddToCollectionModal()">Отмена</button>
+            <button type="submit" class="btn modal-submit-btn">Добавить</button>
+        </div>
+    </form>
+  </div>
+</div>
+<script>
+  function showAddToCollectionModal() {
+      document.getElementById('addToCollectionModal').style.display = 'block';
+  }
+  function closeAddToCollectionModal() {
+      document.getElementById('addToCollectionModal').style.display = 'none';
+  }
+  document.getElementById('addToCollectionForm').onsubmit = function(e) {
+      var select = document.getElementById('collectionSelect');
+      var collectionId = select.value;
+      this.action = '/collections/' + collectionId + '/add_book';
+  };
+</script>
+{% endif %}
+{% endblock %}
+

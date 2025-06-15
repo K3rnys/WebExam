@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Электронная библиотека</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav>
+        <div class="nav-left">
+            <a href="/">Главная</a>
+            {% if current_user.is_authenticated %}
+                {% if current_user.role.name == 'admin' %}
+                    <a href="/users">Пользователи</a>
+                    <a href="/all-reviews">Все рецензии</a>
+                {% elif current_user.role.name == 'user' %}
+                    <a href="/my-reviews">Мои рецензии</a>
+                    <a href="/collections">Мои подборки</a>
+                {% elif current_user.role.name == 'moderator' %}
+                    <a href="/moderate">Модерация рецензий</a>
+                {% endif %}
+            {% endif %}
+        </div>
+        <div class="nav-right">
+            {% if current_user.is_authenticated %}
+                <span class="nav-user">{{ current_user.first_name }} {{ current_user.last_name }}</span>
+                <a href="/logout">Выйти</a>
+            {% else %}
+                <a href="/login">Войти</a>
+            {% endif %}
+        </div>
+    </nav>
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+    <footer>
+        <hr>
+        <small>Электронная библиотека &copy; 2025 | Автор: <b>Печерин Ильдар, группа 231-3211, 1 вариант</b></small>
+    </footer>
+</body>
+</html>

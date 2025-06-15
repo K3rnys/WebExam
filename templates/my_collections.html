@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Мои подборки</h2>
+<table class="collections-table">
+  <tr>
+    <th class="collections-icon-col"></th>
+    <th>Название</th>
+    <th>Книг</th>
+    <th>Действие</th>
+  </tr>
+  {% for c in collections %}
+  <tr>
+    <td class="collections-icon-cell">
+      <span class="collections-icon">&#128218;</span>
+    </td>
+    <td class="collection-name">{{ c.name }}</td>
+    <td>
+      <span class="badge">{{ c.books_count }}</span>
+    </td>
+    <td>
+      <a href="{{ url_for('collection_view', collection_id=c.id) }}" class="btn btn-small collection-action-btn">Просмотр</a>
+      <form method="post" action="{{ url_for('delete_collection', collection_id=c.id) }}" class="collection-delete-form">
+        <button type="submit" class="btn btn-small collection-action-btn collection-delete-btn" onclick="return confirm('Удалить подборку?');">Удалить</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+<div class="add-collection-container">
+  <button class="btn" onclick="showAddCollectionModal()">Добавить подборку</button>
+</div>
+
+<div id="addCollectionModal" class="modal">
+  <div class="modal-content add-collection-modal">
+    <h3>Новая подборка</h3>
+    <form method="post" action="{{ url_for('add_collection') }}">
+      <input type="text" name="name" placeholder="Название подборки" required class="modal-input">
+      <div class="modal-actions">
+        <button type="button" onclick="closeAddCollectionModal()" class="btn btn-small">Отмена</button>
+        <button type="submit" class="btn btn-small">Добавить</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function showAddCollectionModal() {
+  document.getElementById('addCollectionModal').style.display = 'block';
+}
+function closeAddCollectionModal() {
+  document.getElementById('addCollectionModal').style.display = 'none';
+}
+</script>
+{% endblock %}

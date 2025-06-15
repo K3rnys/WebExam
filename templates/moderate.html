@@ -1,0 +1,39 @@
+{# 
+    Шаблон страницы модерации рецензий (для модератора).
+    Показывает список рецензий на рассмотрение.
+#}
+{% extends 'base.html' %}
+{% block content %}
+<h2>Модерация рецензий</h2>
+<table>
+    <tr>
+        <th>Книга</th>
+        <th>Пользователь</th>
+        <th>Дата</th>
+        <th>Действие</th>
+    </tr>
+    {% for review in reviews.items %}
+    <tr>
+        <td><a href="/book/{{ review.book.id }}">{{ review.book.title }}</a></td>
+        <td>{{ review.user.last_name }} {{ review.user.first_name }}</td>
+        <td>{{ review.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+        <td><a href="/moderate/{{ review.id }}">Рассмотреть</a></td>
+    </tr>
+    {% endfor %}
+</table>
+<div class="pagination">
+    {% if reviews.has_prev %}
+        <a href="{{ url_for('moderate', page=reviews.prev_num) }}" class="btn btn-small pagination-btn">&lt; Назад</a>
+    {% else %}
+        <span class="btn btn-small pagination-btn disabled">&lt; Назад</span>
+    {% endif %}
+
+    <span class="pagination-page">Страница {{ reviews.page }} из {{ reviews.pages }}</span>
+
+    {% if reviews.has_next %}
+        <a href="{{ url_for('moderate', page=reviews.next_num) }}" class="btn btn-small pagination-btn">Вперёд &gt;</a>
+    {% else %}
+        <span class="btn btn-small pagination-btn disabled">Вперёд &gt;</span>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{# 
+    Шаблон страницы всех рецензий (для администратора).
+    Показывает таблицу всех рецензий в системе.
+#}
+{% extends 'base.html' %}
+{% block content %}
+<h2>Все рецензии</h2>
+<table class="reviews-table">
+    <thead>
+      <tr>
+        <th>Статус</th>
+        <th>Книга</th>
+        <th>Пользователь</th>
+        <th>Оценка</th>
+        <th>Текст</th>
+        <th>Дата</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for review in reviews %}
+      <tr>
+        <td>
+          {% if review.status.name == 'approved' %}
+            <span class="review-status approved">Одобрено</span>
+          {% elif review.status.name == 'rejected' %}
+            <span class="review-status rejected">Отклонено</span>
+          {% elif review.status.name == 'pending' %}
+            <span class="review-status pending">На рассмотрении</span>
+          {% else %}
+            {{ review.status.name }}
+          {% endif %}
+        </td>
+        <td><a href="/book/{{ review.book.id }}">{{ review.book.title }}</a></td>
+        <td>{{ review.user.last_name }} {{ review.user.first_name }}</td>
+        <td>{{ review.rating }}</td>
+        <td>{{ review.text_html|safe }}</td>
+        <td>{{ review.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<div class="table-actions">
+    <a href="/" class="btn back-btn">Назад</a>
+</div>
+{% endblock %}

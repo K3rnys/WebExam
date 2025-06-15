@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Регистрация</h2>
+<form method="post" class="register-form">
+    {{ form.hidden_tag() }}
+    <div>
+        {{ form.username.label }}<br>
+        {{ form.username(size=32) }}
+    </div>
+    <div>
+        {{ form.password.label }}<br>
+        {{ form.password(size=32, autocomplete="new-password") }}
+    </div>
+    <div>
+        {{ form.last_name.label }}<br>
+        {{ form.last_name(size=32) }}
+    </div>
+    <div>
+        {{ form.first_name.label }}<br>
+        {{ form.first_name(size=32) }}
+    </div>
+    <div>
+        {{ form.middle_name.label }}<br>
+        {{ form.middle_name(size=32) }}
+    </div>
+    <div class="form-actions">
+        <a href="{{ url_for('login') }}" class="btn form-back-btn same-width-btn">Назад</a>
+        {{ form.submit(class_="btn same-width-btn") }}
+    </div>
+</form>
+{% endblock %}
